@@ -1,0 +1,37 @@
+bucket:
+  description: >
+    This lays out how to specify a single bucket
+  type: object
+  additionalProperties: false
+  required: [name, hostname]
+  properties:
+    name:
+      description:
+        The name of the S3 bucket to be created.  Needs to be globally unique, among all AWS accounts.
+      type: string
+    hostname:
+      description:
+        The hostname for your CDN.  This hostname is attached to the environment's domain to form a URL in both CloudFront and Route53
+    expires:
+      description:
+        The maximum amount of time, in seconds, that an object stays
+        cached in the edge server before additional requests are forwarded
+        to the S3 bucket to check for updates.  When this value is omitted,
+        sky-media defaults to 60 seconds.
+      type: integer
+      minimum: 0
+      maximum: 3153600000
+    priceClass:
+      description:
+        Sets the extent to which content is cached on CloudFronts edge
+        servers.  By limiting to edge servers in cheaper locations
+        throughout the world, you can lower your expenses at the cost of
+        less coverage.  When this value is omitted, sky-media defaults to 100,
+        which is cheapest, but comes with the smallest coverage area.
+      anyOf:
+        - type: string
+          enum: [ "100", "200", "All"]
+        - type: integer
+          multipleOf: 100
+          minimum: 100
+          maximum: 200
