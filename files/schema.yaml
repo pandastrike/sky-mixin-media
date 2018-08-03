@@ -1,7 +1,7 @@
 type: object
 additionalProperties: false
 properties:
-  bucket:
+  buckets:
     description: >
       List of buckets specified using this mixin bucket schema.
     type: array

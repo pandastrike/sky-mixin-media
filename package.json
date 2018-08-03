@@ -4,9 +4,9 @@
   "description": "Media Server Mixin for Panda Sky, Built from AWS Presets",
   "main": "build/npm/src/index.js",
   "files": [
-   "build/npm",
-   "LICENSE",
-   "files"
+    "build/npm",
+    "LICENSE",
+    "files"
   ],
   "scripts": {},
   "repository": {

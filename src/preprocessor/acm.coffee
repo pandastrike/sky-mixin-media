@@ -1,4 +1,4 @@
-import {collect, where, empty, cat, compact, intersection, first, project, isFunction, lift, bind} from require "fairmont"
+import {collect, where, empty, cat, compact, intersection, first, project, isFunction, lift, bind} from "fairmont"
 import {root, regularlyQualify} from "./url"
 
 liftService = (s) ->
@@ -34,7 +34,7 @@ ACM = (AWS) ->
 
   # Looks within an individual cert for its coverage of a given domain.
   scan = (name, CertificateArn) ->
-    {Certificate} =  acm.describeCertificate {CertificateArn}
+    {Certificate} =  await acm.describeCertificate {CertificateArn}
     alternates = Certificate.SubjectAlternativeNames
     if name in alternates then CertificateArn else undefined
 
@@ -75,4 +75,4 @@ ACM = (AWS) ->
       throw new Error "Unable to find the required certs in ACM."
 
   {fetch}
-export ACM
+export default ACM

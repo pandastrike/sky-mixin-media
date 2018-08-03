@@ -31,6 +31,4 @@ root = (url) ->
     console.error "Failed to parse root url", e
     throw new Error()
 
-bucketURL = (name) -> "http://#{name}.s3.amazonaws.com"
-
-export {bucketURL, fullyQualify, regularlyQualify, root}
+export {fullyQualify, regularlyQualify, root}

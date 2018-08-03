@@ -25,6 +25,7 @@ MixinMediaBucket{{resourceTitle}}:
 # Allows anyone to *read* a given object, but prevents scanning of our media resources through list.
 MixinMediaBucket{{resourceTitle}}Policy:
   Type: AWS::S3::BucketPolicy
+  DeletionPolicy: Retain
   Properties:
     Bucket: {{name}}
     PolicyDocument:
@@ -57,7 +58,6 @@ MixinMediaBucket{{resourceTitle}}CF:
           QueryStringCacheKeys: ["*"]
         MaxTTL: {{expires}}
         MinTTL: 0
-        PathPattern: "/*"
         SmoothStreaming: false
         TargetOriginId: "MixinMediaBucket{{resourceTitle}}"
         ViewerProtocolPolicy: redirect-to-https

@@ -37,8 +37,8 @@ process = (_AWS_, config) ->
       resourceTitle: capitalize camelCase plainText b.name
       hostname
       expires: b.expires
-      bucketDomainName: bucketURL config, b.name
       priceClass: "PriceClass_" + (b.priceClass || 100)
+      bucketDomainName: "#{b.name}.s3.amazonaws.com"
       certificate: await fetchCertificate hostname
       hostedzone: root hostname
       tags
