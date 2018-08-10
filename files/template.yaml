@@ -14,13 +14,16 @@ MixinMediaBucket{{resourceTitle}}:
           AllowedOrigins:
             - "*"
           ExposedHeaders:
-            - ""
+            - Access-Control-Allow-Origin
+            - Access-Control-Allow-Methods
+            - Access-Control-Allow-Headers
+            - ETag
           MaxAge: {{expires}}
-    Tags:
-    {{#each tags}}
-      - Key: {{Key}}
-        Value: {{Value}}
-    {{/each}}
+    LifecycleConfiguration:
+      Rules:
+        - AbortIncompleteMultipartUpload:
+            DaysAfterInitiation: 1
+          Status: Enabled
 
 # Allows anyone to *read* a given object, but prevents scanning of our media resources through list.
 MixinMediaBucket{{resourceTitle}}Policy:
