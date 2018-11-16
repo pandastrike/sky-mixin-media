@@ -1,15 +1,27 @@
 # Panda Sky Mixin: Media
 # This mixin allocates a variety of AWS resources to setup a media server for your app.  That includes an S3 bucket that can accept multipart uploads (via signed URLs) and public reads.  There is also an edge-cached CDN to get that all to the edge.
 
-import {cat, isObject, plainText, camelCase, capitalize} from "fairmont"
-
-import {bucketURL, root} from "./url"
-import ACM from "./acm"
+import {cat, isObject, plainText, camelCase, capitalize, merge} from "panda-parchment"
+import Sundog from "sundog"
 import S3 from "./bucket-scan"
 
-process = (_AWS_, config) ->
-  {fetch: fetchCertificate} = ACM _AWS_
-  {exists} = S3 _AWS_
+process = (SDK, config) ->
+  {AWS: {ACM, URL:{root}}} = Sundog SDK
+  {fetch} = ACM region: "us-east-1" # we always store certs here
+  {exists} = await S3 SDK, config
+
+  _fetch = (name) ->
+    if cert = await fetch hostname
+      cert
+    else
+      throw new Error "Unable to locate wildcard cert for #{name}"
+
+  wafDefaults = (global, local) ->
+    out = merge global, (local ? {})
+    out.floodThreshold ?= 2000
+    out.errorThreshold ?= 50
+    out.blockTTL ?= 240
+    out
 
   # Start by extracting out the Media Mixin configuration:
   {env, tags=[]} = config
@@ -17,7 +29,7 @@ process = (_AWS_, config) ->
   c = if isObject c then c else {}
   c.tags = cat (c.tags || []), tags
 
-  {buckets=[], tags} = c
+  {buckets=[], tags, waf={}} = c
 
   # Only specify an S3 bucket if it does not already exist.
   needed = []
@@ -39,8 +51,10 @@ process = (_AWS_, config) ->
       expires: b.expires
       priceClass: "PriceClass_" + (b.priceClass || 100)
       bucketDomainName: "#{b.name}.s3.amazonaws.com"
-      certificate: await fetchCertificate hostname
+      certificate: await _fetch hostname
       hostedzone: root hostname
+      logBucket: "#{b.name}-cflogs"
+      waf: wafDefaults waf, b.waf
       tags
     }
 
@@ -49,6 +63,8 @@ process = (_AWS_, config) ->
   {
     buckets: needed
     edges
+    rootName: "#{config.environmentVariables.fullName}-media"
+    skyBucket: config.environmentVariables.skyBucket
   }
 
 

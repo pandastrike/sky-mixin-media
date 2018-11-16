@@ -24,24 +24,47 @@ MixinMediaBucket{{resourceTitle}}:
         - AbortIncompleteMultipartUpload:
             DaysAfterInitiation: 1
           Status: Enabled
-
-# Allows anyone to *read* a given object, but prevents scanning of our media resources through list.
-MixinMediaBucket{{resourceTitle}}Policy:
-  Type: AWS::S3::BucketPolicy
-  DeletionPolicy: Retain
-  Properties:
-    Bucket: {{name}}
-    PolicyDocument:
-      Statement:
-        - Action:
-            - "s3:GetObject"
-          Effect: "Allow"
-          Resource: "arn:aws:s3:::{{name}}/*"
-          Principal: "*"
+    Tags:
+    {{#each tags}}
+      - Key: {{Key}}
+        Value: {{Value}}
+    {{/each}}
 {{/each}}
 
+
+MixinMediaOriginAccess:
+  Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
+  Properties:
+    CloudFrontOriginAccessIdentityConfig:
+      Comment: "Established by the Media Sky Mixin for edge-cache access to S3"
+
 {{#each edges}}
+WAF{{resourceTitle}}:
+  Type: "AWS::CloudFormation::Stack"
+  Properties:
+    Parameters:
+      SqlInjectionProtectionParam: "yes"
+      CrossSiteScriptingProtectionParam: "yes"
+      ActivateReputationListsProtectionParam: "yes"
+      ActivateBadBotProtectionParam: "yes"
+      SendAnonymousUsageData: "no"
+      ActivateHttpFloodProtectionParam: "yes"
+      RequestThreshold: "{{waf.floodThreshold}}"
+      ActivateScansProbesProtectionParam: "yes"
+      ErrorThreshold: "{{waf.errorThreshold}}"
+      WAFBlockPeriod: "{{waf.blockTTL}}"
+      AccessLogBucket: "{{logBucket}}"
+      RootName: {{@root.rootName}}
+    Tags:
+      {{#each tags}}
+      - Key: {{Key}}
+        Value: {{Value}}
+      {{/each}}
+    TemplateURL: "https://s3.amazonaws.com/{{@root.skyBucket}}/mixin-code/media/waf.json"
+
 MixinMediaBucket{{resourceTitle}}CF:
+  DependsOn:
+    - WAF{{resourceTitle}}
   Type: "AWS::CloudFront::Distribution"
   Properties:
     DistributionConfig:
@@ -51,16 +74,16 @@ MixinMediaBucket{{resourceTitle}}CF:
       DefaultCacheBehavior:
         AllowedMethods: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
         CachedMethods: ["GET", "HEAD", "OPTIONS"]
-        Compress: false
+        Compress: true
+        MinTTL: 0
+        MaxTTL: 31536000
         DefaultTTL: {{expires}}
         ForwardedValues:
           Cookies:
             Forward: "all"
-          Headers: ["Accept", "Accept-Charset", "Accept-Datetime", "Accept-Language", "Access-Control-Request-Headers", "Access-Control-Request-Method", "Authorization", "Origin", "Referer"]
+          Headers: ["Accept", "Access-Control-Request-Headers", "Access-Control-Request-Method", "Authorization", "Origin"]
           QueryString: true
           QueryStringCacheKeys: ["*"]
-        MaxTTL: {{expires}}
-        MinTTL: 0
         SmoothStreaming: false
         TargetOriginId: "MixinMediaBucket{{resourceTitle}}"
         ViewerProtocolPolicy: redirect-to-https
@@ -72,17 +95,29 @@ MixinMediaBucket{{resourceTitle}}CF:
         - Id: "MixinMediaBucket{{resourceTitle}}"
           DomainName: {{bucketDomainName}}
           OriginPath: ""
-          S3OriginConfig: {}
+          S3OriginConfig:
+            OriginAccessIdentity:
+              "Fn::Join":
+                - ""
+                -
+                  - "origin-access-identity/cloudfront/"
+                  - Ref: MixinMediaOriginAccess
       PriceClass: {{priceClass}}
       ViewerCertificate:
         AcmCertificateArn: {{certificate}}
         MinimumProtocolVersion: "TLSv1.2_2018"
         SslSupportMethod: "sni-only"
-    # Tags:
-    # {{#each tags}}
-    #   - Key: {{Key}}
-    #     Value: {{Value}}
-    # {{/each}}
+      Logging:
+        Bucket: {{logBucket}}.s3.amazonaws.com
+        IncludeCookies: true
+        Prefix: ""
+      WebACLId:
+        "Fn::GetAtt": ["WAF{{resourceTitle}}", "Outputs.WAFWebACL"]
+    Tags:
+    {{#each tags}}
+      - Key: {{Key}}
+        Value: {{Value}}
+    {{/each}}
 
 MixinMediaBucket{{resourceTitle}}DNS:
   Type: AWS::Route53::RecordSetGroup
