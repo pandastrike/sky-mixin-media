@@ -1,3 +1,9 @@
+MixinMediaOriginAccess:
+  Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
+  Properties:
+    CloudFrontOriginAccessIdentityConfig:
+      Comment: {{rootName}}
+
 {{#each buckets}}
 MixinMediaBucket{{resourceTitle}}:
   Type: "AWS::S3::Bucket"
@@ -29,14 +35,23 @@ MixinMediaBucket{{resourceTitle}}:
       - Key: {{Key}}
         Value: {{Value}}
     {{/each}}
-{{/each}}
 
-
-MixinMediaOriginAccess:
-  Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
+# Allows anyone to *read* a given object, but prevents scanning of our media resources through list.
+MixinMediaBucket{{resourceTitle}}Policy:
+  Type: AWS::S3::BucketPolicy
+  DeletionPolicy: Retain
   Properties:
-    CloudFrontOriginAccessIdentityConfig:
-      Comment: "Established by the Media Sky Mixin for edge-cache access to S3"
+    Bucket: {{name}}
+    PolicyDocument:
+      Statement:
+        - Action:
+            - "s3:GetObject"
+          Effect: "Allow"
+          Resource: "arn:aws:s3:::{{name}}/*"
+          Principal:
+            CanonicalUser:
+              "Fn::GetAtt": [MixinMediaOriginAccess, S3CanonicalUserId]
+{{/each}}
 
 {{#each edges}}
 WAF{{resourceTitle}}:
