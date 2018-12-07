@@ -7,11 +7,11 @@ Policy = (config, global) ->
   # Grant total access to the buckets listed in this mixin.
   # TODO: Consider limiting the actions on those buckets and/or how to specify limitations within the mixin configuration.
 
-  names = collect project "name", config.buckets
-  resources = []
-  for n in names
-    resources.push "arn:aws:s3:::#{n}"
-    resources.push "arn:aws:s3:::#{n}/*"
+  {name} = config.bucket
+  resources = [
+    "arn:aws:s3:::#{name}-pre"
+    "arn:aws:s3:::#{name}-pre/*"
+  ]
 
   [
     Effect: "Allow"

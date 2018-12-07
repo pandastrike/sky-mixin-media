@@ -1,22 +1,9 @@
 type: object
 additionalProperties: false
+required: [bucket]
 properties:
 
-  buckets:
-    description: >
-      List of buckets specified using this mixin bucket schema.
-    type: array
-    items: {$ref: "#/definitions/bucket"}
-
-  waf:
-    description: >
-      Optional, global configuration for the WAF firewall on each bucket edge-cache listed in `buckets`.  This is overridden by any locally specified WAF values within a given bucket.
-    type: object
-    additionalProperties: false
-    properties:
-      floodThreshold: {$ref: "#/definitions/floodThreshold"}
-      errorThreshold: {$ref: "#/definitions/errorThreshold"}
-      blockTTL: {$ref: "#/definitions/blockTTL"}
+  bucket: {$ref: "#/definitions/bucket"}
 
   tags:
     description: >

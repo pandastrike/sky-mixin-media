@@ -1,2 +1,4 @@
 node_modules/
 build/
+upload-hook/lib
+upload-hook/upload-hook.zip

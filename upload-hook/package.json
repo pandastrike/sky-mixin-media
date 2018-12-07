@@ -1,0 +1,18 @@
+{
+  "name": "upload-hook",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm install; coffee --transpile -o lib/index.js src/index.coffee; rm -rf node_modules; npm install --only=production; cp -r node_modules lib; zip -qr -9 upload-hook.zip lib; cp upload-hook.zip ../files/resources/upload-hook.zip"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "kraken": "^0.4.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0"
+  }
+}

@@ -3,13 +3,9 @@ import Sundog from "sundog"
 import warningMsg from "./warning-messages"
 
 
-_S3 = (SDK, config) ->
+helpers = (SDK, config) ->
   {AWS: {S3}} = Sundog SDK
   s3 = S3()
-
-  # Push our altered version of the WAF template to the orchestration bucket.  We need this becuase nested stack names are too long to be used as WAF Rule names, as the version published by AWS tries to do.  Work on not needing to do this.
-  await s3.bucketTouch config.environmentVariables.skyBucket
-  await s3.put config.environmentVariables.skyBucket, "mixin-code/media/waf.json", (resolve __dirname, "..", "..", "..", "..", "files", "waf.json"), false
 
   exists = (name) ->
     try
@@ -20,4 +16,4 @@ _S3 = (SDK, config) ->
 
   {exists}
 
-export default _S3
+export default helpers

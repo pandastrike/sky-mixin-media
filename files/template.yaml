@@ -2,10 +2,142 @@ MixinMediaOriginAccess:
   Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
   Properties:
     CloudFrontOriginAccessIdentityConfig:
-      Comment: {{rootName}}
+      Comment: {{name}}
 
-{{#each buckets}}
-MixinMediaBucket{{resourceTitle}}:
+{{#with bucket}}
+{{#if new}}
+{{#if optimization}}
+
+UploadHookRole:
+  Type: "AWS::IAM::Role"
+  Properties:
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Sid: "AllowLambdaServiceToAssumeRole"
+            Effect: "Allow"
+            Action:
+              - "sts:AssumeRole"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+      # Policies:
+      #   -
+      #     PolicyName: MediaUploadHook
+      #     PolicyDocument:
+      #       Version: '2012-10-17'
+      #       Statement:
+      #         -
+      #           Effect: Allow
+      #           Action: 's3:GetObject'
+      #           Resource: 'arn:aws:s3:::{{preprocessing}}/*'
+
+UploadHook:
+  DependsOn:
+    - UploadHookRole
+  Type: "AWS::Lambda::Function"
+  Properties:
+    FunctionName: {{@root.name}}-media-upload
+    Handler: lib/index.handler
+    MemorySize: 256
+    Runtime: nodejs8.10
+    Timeout: 120
+    {{#with optimization.image}}{{#with kraken}}
+    Environment:
+      Variables:
+        callbackURL: {{callbackURL}}
+        krakenKey: {{key}}
+        krakenSecret: {{secret}}
+    {{/with}}{{/with}}
+    Tags:
+      {{#each tags}}
+        - Key: {{Key}}
+          Value: {{Value}}
+      {{/each}}
+    Role:
+      "Fn::GetAtt": [UploadHookRole, Arn]
+    Code:
+      S3Bucket: {{@root.skyBucket}}
+      S3Key: "mixin-code/media/upload-hook.zip"
+
+UploadHookPermission:
+  DependsOn:
+    - UploadHook
+  Type: "AWS::Lambda::Permission"
+  Properties:
+    FunctionName:
+      "Fn::GetAtt": [ UploadHook, Arn ]
+    Action: "lambda:InvokeFunction"
+    Principal: "s3.amazonaws.com"
+    SourceAccount:
+      Ref: "AWS::AccountId"
+    SourceArn: "arn:aws:s3:::{{preprocessing}}"
+
+PreprocessingBucket:
+  DependsOn:
+    - UploadHook
+    - UploadHookPermission
+  Type: "AWS::S3::Bucket"
+  DeletionPolicy: Retain
+  Properties:
+    BucketName: {{preprocessing}}
+    CorsConfiguration:
+      CorsRules:
+        - AllowedHeaders:
+            - "*"
+          AllowedMethods:
+            - "GET"
+            - "PUT"
+          AllowedOrigins:
+            - "*"
+          ExposedHeaders:
+            - Access-Control-Allow-Origin
+            - Access-Control-Allow-Methods
+            - Access-Control-Allow-Headers
+            - ETag
+          MaxAge: {{expires}}
+    Tags:
+      - Key: bucket-type
+        Value: preprocessing
+    {{#each tags}}
+      - Key: {{Key}}
+        Value: {{Value}}
+    {{/each}}
+    LifecycleConfiguration:
+      Rules:
+        - AbortIncompleteMultipartUpload:
+            DaysAfterInitiation: 1
+          Status: Enabled
+        - ExpirationInDays: 1
+          Status: Enabled
+    NotificationConfiguration:
+      LambdaConfigurations:
+        - Event: "s3:ObjectCreated:CompleteMultipartUpload"
+          Function:
+            "Fn::GetAtt": [UploadHook, Arn]
+
+# Allows anyone to *read* a given object via the CloudFront distribution, but prevents scanning of our media resources through list or through directly accessing the S3 bucket.
+PreprocessingBucketPolicy:
+  Type: AWS::S3::BucketPolicy
+  DeletionPolicy: Retain
+  Properties:
+    Bucket: {{preprocessing}}
+    PolicyDocument:
+      Statement:
+        - Action:
+            - "s3:GetObject"
+          Effect: "Allow"
+          Resource: "arn:aws:s3:::{{preprocessing}}/*"
+          Principal: "*"
+
+
+{{/if}} # end of optimization if
+
+FinalBucket:
   Type: "AWS::S3::Bucket"
   DeletionPolicy: Retain
   Properties:
@@ -25,19 +157,16 @@ MixinMediaBucket{{resourceTitle}}:
             - Access-Control-Allow-Headers
             - ETag
           MaxAge: {{expires}}
-    LifecycleConfiguration:
-      Rules:
-        - AbortIncompleteMultipartUpload:
-            DaysAfterInitiation: 1
-          Status: Enabled
     Tags:
+      - Key: bucket-type
+        Value: final
     {{#each tags}}
       - Key: {{Key}}
         Value: {{Value}}
     {{/each}}
 
-# Allows anyone to *read* a given object, but prevents scanning of our media resources through list.
-MixinMediaBucket{{resourceTitle}}Policy:
+# Allows anyone to *read* a given object via the CloudFront distribution, but prevents scanning of our media resources through list or through directly accessing the S3 bucket.
+FinalBucketPolicy:
   Type: AWS::S3::BucketPolicy
   DeletionPolicy: Retain
   Properties:
@@ -51,10 +180,11 @@ MixinMediaBucket{{resourceTitle}}Policy:
           Principal:
             CanonicalUser:
               "Fn::GetAtt": [MixinMediaOriginAccess, S3CanonicalUserId]
-{{/each}}
 
-{{#each edges}}
-WAF{{resourceTitle}}:
+{{/if}}
+
+
+WAF:
   Type: "AWS::CloudFormation::Stack"
   Properties:
     Parameters:
@@ -69,7 +199,7 @@ WAF{{resourceTitle}}:
       ErrorThreshold: "{{waf.errorThreshold}}"
       WAFBlockPeriod: "{{waf.blockTTL}}"
       AccessLogBucket: "{{logBucket}}"
-      RootName: {{@root.rootName}}
+      RootName: {{@root.name}}
     Tags:
       {{#each tags}}
       - Key: {{Key}}
@@ -77,9 +207,9 @@ WAF{{resourceTitle}}:
       {{/each}}
     TemplateURL: "https://s3.amazonaws.com/{{@root.skyBucket}}/mixin-code/media/waf.json"
 
-MixinMediaBucket{{resourceTitle}}CF:
+CloudFront:
   DependsOn:
-    - WAF{{resourceTitle}}
+    - WAF
   Type: "AWS::CloudFront::Distribution"
   Properties:
     DistributionConfig:
@@ -100,15 +230,15 @@ MixinMediaBucket{{resourceTitle}}CF:
           QueryString: true
           QueryStringCacheKeys: ["*"]
         SmoothStreaming: false
-        TargetOriginId: "MixinMediaBucket{{resourceTitle}}"
+        TargetOriginId: "MixinMediaBucket"
         ViewerProtocolPolicy: redirect-to-https
       DefaultRootObject: ""
       Enabled: true
       HttpVersion: http2
       IPV6Enabled: false
       Origins:
-        - Id: "MixinMediaBucket{{resourceTitle}}"
-          DomainName: {{bucketDomainName}}
+        - Id: "MixinMediaBucket"
+          DomainName: {{bucketURL}}
           OriginPath: ""
           S3OriginConfig:
             OriginAccessIdentity:
@@ -127,17 +257,17 @@ MixinMediaBucket{{resourceTitle}}CF:
         IncludeCookies: true
         Prefix: ""
       WebACLId:
-        "Fn::GetAtt": ["WAF{{resourceTitle}}", "Outputs.WAFWebACL"]
+        "Fn::GetAtt": ["WAF", "Outputs.WAFWebACL"]
     Tags:
     {{#each tags}}
       - Key: {{Key}}
         Value: {{Value}}
     {{/each}}
 
-MixinMediaBucket{{resourceTitle}}DNS:
+DNS:
   Type: AWS::Route53::RecordSetGroup
   DependsOn:
-    - "MixinMediaBucket{{resourceTitle}}CF"
+    - CloudFront
   Properties:
     Comment: Media endpoint
     HostedZoneName: {{hostedzone}}
@@ -147,9 +277,9 @@ MixinMediaBucket{{resourceTitle}}DNS:
         AliasTarget:
           DNSName:
             "Fn::GetAtt":
-              - "MixinMediaBucket{{resourceTitle}}CF"
+              - "CloudFront"
               - "DomainName"
           EvaluateTargetHealth: false
           HostedZoneId: Z2FDTNDATAQYW2
 
-{{/each}}
+{{/with}}
