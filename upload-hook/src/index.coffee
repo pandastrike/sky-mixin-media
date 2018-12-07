@@ -1,11 +1,19 @@
+import SDK from "aws-sdk"
+import {writeFile} from "fs"
+import {join} from "path"
 import Kraken from "kraken"
+import {rm} from "panda-quill"
+import Sundog from "sundog"
+
+{AWS:{S3}} = Sundog SDK
+{get} = S3()
 
 kraken = new Kraken
     api_key: process.env.krakenKey
     api_secret: process.env.krakenSecret
 
-parameters = (bucket, key) ->
-  url: "https://s3.amazonaws.com/#{bucket}/#{key}"
+parameters = (file) ->
+  file: file
   wait: false
   callback_url: process.env.callbackURL
   json: true
@@ -21,7 +29,7 @@ parameters = (bucket, key) ->
 
 upload = (options) ->
   new Promise (resolve, reject) ->
-    kraken.url options, (fail, response) ->
+    kraken.upload options, (fail, response) ->
       reject fail if fail
       resolve response
 
@@ -31,11 +39,19 @@ handler = ({Records}, context, callback) ->
     key     = Records[0].s3.object.key
 
     # TODO: typecheck for images / videos
+    # Grab the image from S3 and write to temporary disk.
+    file = await get bucket, key, "binary"
+    path = join "/tmp", key
+    await new Promise (resolve, reject) ->
+      writeFile path, file, (error) ->
+        reject error if error?
+        resolve()
 
-    # Eneque with Kraken. # TODO: Can this be a direct upload?
-    response = await upload parameters bucket, key
-    console.log {response}
-    callback null, response
+    # Eneque with Kraken.
+    response = await upload parameters path
+    console.log {key, response}
+    await rm path
+    callback null, "success"
   catch e
     console.log e
     callback null, "failure"

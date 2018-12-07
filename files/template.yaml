@@ -25,16 +25,16 @@ UploadHookRole:
             Principal:
               Service:
                 - "lambda.amazonaws.com"
-      # Policies:
-      #   -
-      #     PolicyName: MediaUploadHook
-      #     PolicyDocument:
-      #       Version: '2012-10-17'
-      #       Statement:
-      #         -
-      #           Effect: Allow
-      #           Action: 's3:GetObject'
-      #           Resource: 'arn:aws:s3:::{{preprocessing}}/*'
+      Policies:
+        -
+          PolicyName: MediaUploadHook
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              -
+                Effect: Allow
+                Action: 's3:GetObject'
+                Resource: 'arn:aws:s3:::{{preprocessing}}/*'
 
 UploadHook:
   DependsOn:
@@ -43,7 +43,7 @@ UploadHook:
   Properties:
     FunctionName: {{@root.name}}-media-upload
     Handler: lib/index.handler
-    MemorySize: 256
+    MemorySize: 512
     Runtime: nodejs8.10
     Timeout: 120
     {{#with optimization.image}}{{#with kraken}}
@@ -119,20 +119,6 @@ PreprocessingBucket:
         - Event: "s3:ObjectCreated:CompleteMultipartUpload"
           Function:
             "Fn::GetAtt": [UploadHook, Arn]
-
-# Allows anyone to *read* a given object via the CloudFront distribution, but prevents scanning of our media resources through list or through directly accessing the S3 bucket.
-PreprocessingBucketPolicy:
-  Type: AWS::S3::BucketPolicy
-  DeletionPolicy: Retain
-  Properties:
-    Bucket: {{preprocessing}}
-    PolicyDocument:
-      Statement:
-        - Action:
-            - "s3:GetObject"
-          Effect: "Allow"
-          Resource: "arn:aws:s3:::{{preprocessing}}/*"
-          Principal: "*"
 
 
 {{/if}} # end of optimization if
