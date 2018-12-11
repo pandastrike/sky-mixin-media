@@ -1,8 +1,7 @@
 import SDK from "aws-sdk"
-import {writeFile} from "fs"
 import {join} from "path"
 import Kraken from "kraken"
-import {rm} from "panda-quill"
+import {rm, write} from "panda-quill"
 import Sundog from "sundog"
 
 {AWS:{S3}} = Sundog SDK
@@ -37,8 +36,8 @@ handler = ({Records}, context, callback) ->
   try
     bucket  = Records[0].s3.bucket.name
     key     = Records[0].s3.object.key
-    type    = (await head bucket, key).Metadata["Content-Type"]
-    console.log {key, type}
+    metadata    = (await head bucket, key).Metadata
+    console.log {key, metadata}
 
     # TODO: Have a decision tree based on the incoming type.
 

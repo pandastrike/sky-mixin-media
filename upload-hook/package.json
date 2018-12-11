@@ -11,7 +11,7 @@
   "dependencies": {
     "kraken": "^0.4.0",
     "panda-quill": "^3.4.5",
-    "sundog": "^1.0.11"
+    "sundog": "^1.0.12"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
