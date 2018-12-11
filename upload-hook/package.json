@@ -10,8 +10,8 @@
   "license": "MIT",
   "dependencies": {
     "kraken": "^0.4.0",
-    "panda-quill": "^3.4.3",
-    "sundog": "^1.0.10"
+    "panda-quill": "^3.4.5",
+    "sundog": "^1.0.11"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

@@ -6,7 +6,7 @@ import {rm} from "panda-quill"
 import Sundog from "sundog"
 
 {AWS:{S3}} = Sundog SDK
-{get} = S3()
+{get, head} = S3()
 
 kraken = new Kraken
     api_key: process.env.krakenKey
@@ -37,15 +37,17 @@ handler = ({Records}, context, callback) ->
   try
     bucket  = Records[0].s3.bucket.name
     key     = Records[0].s3.object.key
+    type    = (await head bucket, key).Metadata["Content-Type"]
+    console.log {key, type}
 
-    # TODO: typecheck for images / videos
+    # TODO: Have a decision tree based on the incoming type.
+
+    ## For Images
+    # =====================================================
     # Grab the image from S3 and write to temporary disk.
     file = await get bucket, key, "binary"
     path = join "/tmp", key
-    await new Promise (resolve, reject) ->
-      writeFile path, file, (error) ->
-        reject error if error?
-        resolve()
+    await write path, file
 
     # Eneque with Kraken.
     response = await upload parameters path
