@@ -1,6 +1,6 @@
 {
   "name": "sky-mixin-media",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Media Server Mixin for Panda Sky, Built from AWS Presets",
   "main": "build/npm/src/index.js",
   "files": [
@@ -49,6 +49,6 @@
     "panda-river": "^4.4.1",
     "panda-serialize": "^0.2.0",
     "panda-sky-mixin": "0.0.4",
-    "sundog": "^1.0.10"
+    "sundog": "1.0.10"
   }
 }
