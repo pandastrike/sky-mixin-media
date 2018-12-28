@@ -5,7 +5,6 @@ MixinMediaOriginAccess:
       Comment: {{name}}
 
 {{#with bucket}}
-{{#if new}}
 {{#if optimization}}
 
 UploadHookRole:
@@ -166,8 +165,6 @@ FinalBucketPolicy:
           Principal:
             CanonicalUser:
               "Fn::GetAtt": [MixinMediaOriginAccess, S3CanonicalUserId]
-
-{{/if}}
 
 
 WAF:
