@@ -889,7 +889,7 @@
           },
           "S3Key": "aws-waf-security-automations/v3/reputation-lists-parser.zip"
         },
-        "Runtime": "nodejs6.10",
+        "Runtime": "nodejs8.10",
         "MemorySize": "128",
         "Timeout": "300",
         "Environment": {
