@@ -4,17 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm install; coffee --transpile -o lib/index.js src/index.coffee; rm -rf node_modules; npm install --only=production; cp -r node_modules lib; zip -qr -9 upload-hook.zip lib; cp upload-hook.zip ../files/resources/upload-hook.zip"
+    "build": "rm -rf node_modules lib; mkdir lib; npm install; coffee --transpile --inline-map -o lib/ src/; rm -rf node_modules; npm install --only=production; cp -r node_modules lib/node_modules; zip -qr -9 upload-hook.zip lib; cp upload-hook.zip ../files/resources/upload-hook.zip"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "kraken": "^0.4.0",
+    "panda-parchment": "^4.2.0",
     "panda-quill": "^3.4.5",
-    "sundog": "^1.0.12"
+    "source-map-support": "^0.5.9",
+    "sundog": "^4.0.0"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0"
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "coffeescript": "^2.4.1"
   }
 }

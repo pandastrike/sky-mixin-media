@@ -3,13 +3,11 @@
 
 import {cat, isObject, plainText, camelCase, capitalize, merge} from "panda-parchment"
 import Sundog from "sundog"
-import S3 from "./bucket-scan"
 import addResources from "./bucket-resources"
 
 process = (SDK, config) ->
   {AWS: {ACM, URL:{root}}} = Sundog SDK
   {fetch} = ACM region: "us-east-1" # we always store certs here
-  {exists} = await S3 SDK, config
   await addResources SDK, config
 
   _fetch = (name) ->
@@ -34,7 +32,6 @@ process = (SDK, config) ->
   # Expand the configuration for whole CDN stack.
   hostname = bucket.hostname + "." + config.aws.domain
   bucket = merge bucket, {
-    new: !(await exists bucket.name)
     preprocessing: bucket.name + "-pre"
     hostname,
     bucketURL: "#{bucket.name}.s3.amazonaws.com"

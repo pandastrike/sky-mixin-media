@@ -5,7 +5,6 @@ MixinMediaOriginAccess:
       Comment: {{name}}
 
 {{#with bucket}}
-{{#if optimization}}
 
 UploadHookRole:
   Type: "AWS::IAM::Role"
@@ -119,8 +118,6 @@ PreprocessingBucket:
           Function:
             "Fn::GetAtt": [UploadHook, Arn]
 
-
-{{/if}} # end of optimization if
 
 FinalBucket:
   Type: "AWS::S3::Bucket"

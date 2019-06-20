@@ -3,7 +3,7 @@ bucket:
     This lays out how to specify a single bucket
   type: object
   additionalProperties: false
-  required: [name, hostname]
+  required: [name, hostname, optimization]
   properties:
     name:
       description:
