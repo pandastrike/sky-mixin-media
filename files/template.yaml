@@ -75,6 +75,7 @@ UploadHookPermission:
       Ref: "AWS::AccountId"
     SourceArn: "arn:aws:s3:::{{preprocessing}}"
 
+{{#if needsPreprocessingBucket}}
 PreprocessingBucket:
   DependsOn:
     - UploadHook
@@ -117,8 +118,9 @@ PreprocessingBucket:
         - Event: "s3:ObjectCreated:CompleteMultipartUpload"
           Function:
             "Fn::GetAtt": [UploadHook, Arn]
+{{/if}}
 
-
+{{#if needsFinalBucket}}
 FinalBucket:
   Type: "AWS::S3::Bucket"
   DeletionPolicy: Retain
@@ -146,6 +148,7 @@ FinalBucket:
       - Key: {{Key}}
         Value: {{Value}}
     {{/each}}
+{{/if}}
 
 # Allows anyone to *read* a given object via the CloudFront distribution, but prevents scanning of our media resources through list or through directly accessing the S3 bucket.
 FinalBucketPolicy:

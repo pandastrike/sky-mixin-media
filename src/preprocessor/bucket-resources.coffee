@@ -6,9 +6,8 @@ import warningMsg from "./warning-messages"
 resourcePath = resolve __dirname, "..", "..", "..", "..", "files", "resources"
 key = (path) -> relative resourcePath, path
 
-apply = (SDK, config) ->
-  {AWS: {S3}} = Sundog SDK
-  s3 = S3()
+apply = (AWS, config) ->
+  s3 = AWS.S3()
   {skyBucket} = config.environmentVariables
 
   # Push mixin-specific resources to the orchestration bucket.  This includes:  # - an altered version of the WAF template to deal with our too-long names
