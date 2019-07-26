@@ -1,27 +1,32 @@
+import getPolicy from "./policy"
+import getTemplate from "./template"
+import BeforeHook from "./before-hook"
+import preprocess from "./preprocess"
+
 import {resolve} from "path"
-import MIXIN from "panda-sky-mixin"
-import {read} from "panda-quill"
+import AJV from "ajv"
+import {toJSON} from "panda-parchment"
+import {read as _read} from "panda-quill"
 import {yaml} from "panda-serialize"
 
-import getPolicyStatements from "./policy"
-import preprocess from "./preprocessor"
-#import cli from "./cli"
+ajv = new AJV()
 
-getFilePath = (name) -> resolve __dirname, "..", "..", "..", "files", name
+read = (name) ->
+  await _read resolve __dirname, "..", "..", "..", "files", name
 
-mixin = do ->
-  schema = yaml await read getFilePath "schema.yaml"
-  schema.definitions = yaml await read getFilePath "definitions.yaml"
-  template = await read getFilePath "template.yaml"
+create = (SDK, global, meta, local) ->
+  schema = yaml await read "schema.yaml"
+  schema.definitions = yaml await read "definitions.yaml"
+  unless ajv.validate schema, local
+    console.error toJSON ajv.errors, true
+    throw new Error "failed to validate mixin configuration"
 
-  Media = new MIXIN {
-    name: "media"
-    schema
-    template
-    preprocess
-    #cli
-    getPolicyStatements
-  }
-  Media
+  config = await preprocess SDK, global, meta, local
 
-export default mixin
+  name: "media"
+  policy: getPolicy SDK, global, meta, local
+  vpc: false
+  template: await getTemplate config
+  beforeHook: BeforeHook SDK, global, meta, local, config
+
+export default create

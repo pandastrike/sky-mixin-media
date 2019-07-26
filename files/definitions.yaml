@@ -63,24 +63,20 @@ blockTTL:
 
 optimization:
   description: >
-    Optional configuration to perform size optimization for images and videos uploaded to the media API.  Once the S3 bucket emits an multipart upload complete event for an object, it leads to a chain of queued actions that process the media for the network.
+    Configuration to perform size optimization for images and videos uploaded to the media API.  Once the S3 bucket emits an multipart upload complete event for an object, it leads to a chain of queued actions that process the media for the network.
   type: object
   additionalProperties: false
+  required: [ image ]
   properties:
     image:
       type: object
       additionalProperties: false
       properties:
-        kraken:
+        key:
           description: >
-            Configuration for the Kraken.io image optimization service.
-          type: object
-          additionalProperties: false
-          required: [key, secret]
-          properties:
-            key:
-              type: string
-            secret:
-              type: string
-            callbackURL:
-              type: string
+            Name of the ASM secret containing API key info
+          type: string
+        callbackURL:
+          description: >
+            POST-back URL for Kraken.io after processing.
+          type: string

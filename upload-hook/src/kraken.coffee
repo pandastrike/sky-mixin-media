@@ -5,12 +5,15 @@ import Kraken from "kraken"
 
 import SDK from "aws-sdk"
 import Sundog from "sundog"
-{AWS:{S3}} = Sundog SDK
+{S3, ASM} = Sundog(SDK).AWS
 {get} = S3()
+{read} = ASM()
 
-kraken = new Kraken
-    api_key: process.env.krakenKey
-    api_secret: process.env.krakenSecret
+kraken = do ->
+  {key, secret} = (await read process.env.kraken)
+  new Kraken
+    api_key: key
+    api_secret: secret
 
 baseParameters = (path) ->
   file: path
@@ -55,8 +58,9 @@ parameters = (type, path) ->
       throw new Error "unknown type #{type}"
 
 upload = (options) ->
+  _kraken = await kraken
   new Promise (resolve, reject) ->
-    kraken.upload options, (fail, response) ->
+    _kraken.upload options, (fail, response) ->
       reject fail if fail
       resolve response
 
