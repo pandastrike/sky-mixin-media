@@ -6,8 +6,9 @@ getPath = (name) ->
 
 apply = (SDK, global, meta, local, processed) ->
   (context) ->
-    s3 = context.sundog.S3()
-    lambda = context.sundog.Lambda()
+    {S3, Lambda} = Sundog(SDK).AWS
+    s3 = S3()
+    lambda = Lambda()
 
     {bucket} = global.environment.stack
     key = processed.bucket.optimization.code

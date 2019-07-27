@@ -13,7 +13,7 @@
     "panda-parchment": "^4.2.0",
     "panda-quill": "^3.4.5",
     "source-map-support": "^0.5.9",
-    "sundog": "^4.0.0"
+    "sundog": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
