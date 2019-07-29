@@ -9,11 +9,7 @@ import Sundog from "sundog"
 {get} = S3()
 {read} = ASM()
 
-kraken = do ->
-  {key, secret} = (await read process.env.kraken)
-  new Kraken
-    api_key: key
-    api_secret: secret
+KrakenValues = do -> await read process.env.kraken
 
 baseParameters = (path) ->
   file: path
@@ -58,17 +54,20 @@ parameters = (type, path) ->
       throw new Error "unknown type #{type}"
 
 upload = (options) ->
-  _kraken = await kraken
+  {key, secret} = await KrakenValues
+  kraken = new Kraken
+    api_key: key
+    api_secret: secret
+
   new Promise (resolve, reject) ->
-    _kraken.upload options, (fail, response) ->
+    kraken.upload options, (fail, response) ->
       reject fail if fail
       resolve response
 
-processImage = ({bucket, key, metadata}) ->
+processImage = ({bucket, key, type}) ->
   ## For Images
   # =====================================================
   # Grab the image from S3 and write to temporary disk.
-  type = metadata["Content-Type"]
   file = await get bucket, key, "binary"
   path = join "/tmp", key
   await write path, file
