@@ -50,12 +50,12 @@ Resources:
       MemorySize: 512
       Runtime: nodejs8.10
       Timeout: 120
-      {{#with optimization.image}}{{#with kraken}}
+      {{#with optimization.image}}
       Environment:
         Variables:
           callbackURL: {{callbackURL}}
           kraken: {{key}}
-      {{/with}}{{/with}}
+      {{/with}}
       {{#unless (isEmpty tags)}}
       Tags:
         {{#each tags}}
