@@ -3,17 +3,20 @@ import Sundog from "sundog"
 import {Helpers} from "sundog"
 
 preprocess = (SDK, global, meta, local) ->
-  {AWS} = Sundog SDK
+  {ACM, ASM, S3} = Sundog SDK.config
+  acm = ACM region: "us-east-1"
+  asm = ASM()
+  s3 = S3()
 
   fetch = (name) ->
-    if cert = await AWS.ACM(region: "us-east-1").fetch name
+    if cert = await acm.fetch name
       cert
     else
       throw new Error "Unable to locate wildcard cert for #{name}"
 
-  exists = (name) -> await AWS.S3().bucketExists name
+  exists = (name) -> await s3.bucketExists name
 
-  readASM = (name) -> (await AWS.ASM().get name).ARN
+  readASM = (name) -> (await asm.get name).ARN
 
   {bucket, tags={}} = local
 
@@ -34,8 +37,7 @@ preprocess = (SDK, global, meta, local) ->
     optimization:
       functionName: "#{global.environment.stack.name}-media-upload"
       code: "mixins/#{meta.name}/upload-hook.zip"
-      image: merge bucket.optimization.image,
-        ARN: await readASM bucket.optimization.image.key
+      image: bucket.optimization.image
 
     tags: tags
 
@@ -48,7 +50,12 @@ preprocess = (SDK, global, meta, local) ->
   bucket: bucket
   global:
     name: global.environment.stack.name
+    originAccessName: global.environment.stack.name + "-media"
     bucket: global.environment.stack.bucket
+  env: await do ->
+    merge callbackURL: bucket.optimization.image.callbackURL,
+      await asm.read bucket.optimization.image.key
+
 
 
 export default preprocess

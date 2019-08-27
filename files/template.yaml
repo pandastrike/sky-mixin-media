@@ -6,7 +6,7 @@ Resources:
     Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: {{global.name}}-media
+        Comment: {{global.originAccessName}}
 
   {{#with bucket}}
 
@@ -36,10 +36,6 @@ Resources:
                   Action: 's3:GetObject'
                   Resource: 'arn:aws:s3:::{{preprocessing}}/*'
 
-                - Effect: Allow
-                  Action: "secretsmanager:GetSecretValue"
-                  Resource: {{optimization.image.ARN}}
-
   UploadHook:
     DependsOn:
       - UploadHookRole
@@ -47,15 +43,9 @@ Resources:
     Properties:
       FunctionName: {{optimization.functionName}}
       Handler: lib/index.handler
-      MemorySize: 512
-      Runtime: nodejs8.10
+      MemorySize: 1600
+      Runtime: nodejs10.x
       Timeout: 120
-      {{#with optimization.image}}
-      Environment:
-        Variables:
-          callbackURL: {{callbackURL}}
-          kraken: {{key}}
-      {{/with}}
       {{#unless (isEmpty tags)}}
       Tags:
         {{#each tags}}
