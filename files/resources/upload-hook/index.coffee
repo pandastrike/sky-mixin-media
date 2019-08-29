@@ -1,6 +1,4 @@
-import "source-map-support/register"
 import {flow} from "panda-garden"
-import {include} from "panda-parchment"
 import {pullFile, dispatch} from "./dispatch"
 
 handler = ({Records}, context, callback) ->

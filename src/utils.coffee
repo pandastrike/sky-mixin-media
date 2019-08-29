@@ -17,9 +17,12 @@ print = (_process) ->
         reject()
 
 
-shell = (str, path="") ->
+shell = (str, path="", env) ->
   [command, args...] = w str
-  await print await spawn command, args,
-    cwd: resolvePath process.cwd(), path
+
+  options = cwd: resolvePath process.cwd(), path
+  options.env = env if env?
+
+  await print await spawn command, args, options
 
 export {shell}

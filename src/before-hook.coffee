@@ -71,6 +71,7 @@ bundle = (context) ->
         externals:
           "aws-sdk": "aws-sdk"
           sharp: "sharp"
+          pngquant: "pngquant"
 
         module:
           rules: [
@@ -126,8 +127,17 @@ bundle = (context) ->
 
 writeSharpLib = (context) ->
   cwd = Path.resolve context.mixin.temp, "lib"
+  version = "8.8.1"
+
   await shell "npm init -y", cwd
-  await shell "npm install --arch=x64 --platform=linux --target=10.16.0 sharp", cwd
+  await shell "npm i --arch=x64 --platform=linux --target=10.16.0 sharp", cwd
+
+  await shell "curl -L https://github.com/avishnyak/sharp-libvips/releases/download/v#{version}/libvips-#{version}-linux-x64.tar.gz -o libvips-#{version}-linux-x64.tar.gz", cwd
+
+  await shell "tar -zxf libvips-#{version}-linux-x64.tar.gz -C node_modules/sharp/vendor", cwd
+
+  await shell "rm -rf libvips-#{version}-linux-x64.tar.gz", cwd
+
   context
 
 zip = (context) ->

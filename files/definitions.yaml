@@ -3,7 +3,7 @@ bucket:
     This lays out how to specify a single bucket
   type: object
   additionalProperties: false
-  required: [name, hostname, optimization]
+  required: [name, hostname]
   properties:
     name:
       description:
@@ -35,7 +35,6 @@ bucket:
           multipleOf: 100
           minimum: 100
           maximum: 200
-    optimization: {$ref: "#/definitions/optimization"}
     waf:
       description: >
         Optional, local configuration for the WAF firewall for this bucket edge-cache.  Values here override the global WAF values, if set.
@@ -60,23 +59,3 @@ errorThreshold:
 blockTTL:
   description: >
     The period, in minutes, to block applicable IP addresses.  Defaults to 240.
-
-optimization:
-  description: >
-    Configuration to perform size optimization for images and videos uploaded to the media API.  Once the S3 bucket emits an multipart upload complete event for an object, it leads to a chain of queued actions that process the media for the network.
-  type: object
-  additionalProperties: false
-  required: [ image ]
-  properties:
-    image:
-      type: object
-      additionalProperties: false
-      properties:
-        key:
-          description: >
-            Name of the ASM secret containing API key info
-          type: string
-        callbackURL:
-          description: >
-            POST-back URL for Kraken.io after processing.
-          type: string

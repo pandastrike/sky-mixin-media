@@ -1,7 +1,9 @@
-import krakenImage from "./kraken-image"
-
 import Sundog from "sundog"
 s3 = Sundog().S3()
+
+import "source-map-support/register"
+import staticImage from "./static-image"
+
 
 pullFile = (Records) ->
   bucket = Records[0].s3.bucket.name
@@ -16,7 +18,7 @@ dispatch = (context) ->
 
   switch type
     when "image/jpeg", "image/jpg", "image/png", "image/webp"
-      await krakenImage context
+      await staticImage context
     else
       throw new Error "unknown content-type #{type}"
 

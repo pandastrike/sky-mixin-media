@@ -37,7 +37,6 @@ preprocess = (SDK, global, meta, local) ->
     optimization:
       functionName: "#{global.environment.stack.name}-media-upload"
       code: "mixins/#{meta.name}/upload-hook.zip"
-      image: bucket.optimization.image
 
     tags: tags
 
@@ -52,9 +51,8 @@ preprocess = (SDK, global, meta, local) ->
     name: global.environment.stack.name
     originAccessName: global.environment.stack.name + "-media"
     bucket: global.environment.stack.bucket
-  env: await do ->
-    merge callbackURL: bucket.optimization.image.callbackURL,
-      await asm.read bucket.optimization.image.key
+  env:
+    targetBucket: bucket.name
 
 
 

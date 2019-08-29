@@ -35,6 +35,9 @@ Resources:
                 - Effect: Allow
                   Action: 's3:GetObject'
                   Resource: 'arn:aws:s3:::{{preprocessing}}/*'
+                - Effect: Allow
+                  Action: 's3:PutObject'
+                  Resource: 'arn:aws:s3:::{{name}}/*'
 
   UploadHook:
     DependsOn:
@@ -43,9 +46,9 @@ Resources:
     Properties:
       FunctionName: {{optimization.functionName}}
       Handler: lib/index.handler
-      MemorySize: 1600
+      MemorySize: 3008
       Runtime: nodejs10.x
-      Timeout: 120
+      Timeout: 300
       {{#unless (isEmpty tags)}}
       Tags:
         {{#each tags}}
