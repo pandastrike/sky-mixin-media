@@ -77,25 +77,25 @@ bundle = (context) ->
           rules: [
             test: /\.coffee$/
             use: [
-              loader: "coffee-loader"
+              loader: require.resolve "coffee-loader"
               options:
                 transpile:
                   presets: [[
-                    "@babel/preset-env",
+                    (require.resolve "@babel/preset-env"),
                     targets:
                       node: "10.16"
                   ]]
             ]
           ,
             test: /\.js$/
-            use: [ "source-map-loader" ]
+            use: [ require.resolve "source-map-loader" ]
             enforce: "pre"
           ,
             test: /\.yaml$/
-            use: [ "yaml-loader" ]
+            use: [ require.resolve "yaml-loader" ]
           ,
             test: /^\.\/src.*\.json$/
-            use: [ "json-loader" ]
+            use: [ require.resolve "json-loader" ]
           ]
         resolve:
           alias:

@@ -1,6 +1,6 @@
 {
   "name": "sky-mixin-media",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Media Server Mixin for Panda Sky, Built from AWS Presets",
   "main": "build/npm/src/index.js",
   "files": [
@@ -42,8 +42,12 @@
     "panda-builder": "^4.0.0"
   },
   "dependencies": {
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
     "ajv": "^6.10.2",
     "aws-sdk": "^2.517.0",
+    "coffee-loader": "^0.9.0",
+    "json-loader": "^0.5.7",
     "jszip": "^3.2.2",
     "mime": "^2.4.4",
     "panda-garden": "^4.0.0",
@@ -52,8 +56,10 @@
     "panda-river": "^5.0.0",
     "panda-serialize": "^1.0.0",
     "panda-template": "^2.0.0",
+    "source-map-loader": "^0.2.4",
     "source-map-support": "^0.5.9",
     "sundog": "^6.0.0",
-    "webpack": "^4.39.2"
+    "webpack": "^4.39.2",
+    "yaml-loader": "^0.5.0"
   }
 }
